@@ -2,7 +2,7 @@ import { Injectable, NotFoundException, ConflictException } from '@nestjs/common
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { User } from '../user/user.schema';
-import { Card } from './card.schema';
+import { Card, CardType } from './card.schema';
 
 @Injectable()
 export class CardService {
@@ -13,18 +13,14 @@ export class CardService {
     private userModel: Model<User>,
   ) {}
 
-  async addCard(userId: string): Promise<Card> {
-    
+  async addCard(userId: string, cardType: string): Promise<Card> {
     const user = await this.userModel.findById(userId);
-
-    
 
     if (!user) {
       throw new NotFoundException('User not found');
     }
 
-    const existingCard = await this.cardModel.findOne({ 'owner': user._id, isActive: true });
-    
+    const existingCard = await this.cardModel.findOne({ owner: user._id, isActive: true });
 
     if (existingCard) {
       throw new ConflictException('Card already issued for the user');
@@ -36,11 +32,12 @@ export class CardService {
       expirationDate: calculateExpirationDate(),
       isActive: true,
       currentTariff: null,
+      cardType: cardType,
     });
 
     return card;
   }
-
+  
   async getCardDetails(userId: string): Promise<Card> {
     console.log('Received userId:', userId);
     const user = await this.userModel.findById(userId);
@@ -82,7 +79,6 @@ function calculateExpirationDate(): Date {
     return expirationDate;
 }
 
-
 function generateCardNumber(): string {
     // Генерация идентификатора эмитента (от 10000 до 99999)
     const issuerId = Math.floor(10000 + Math.random() * 90000);
@@ -101,7 +97,7 @@ function generateCardNumber(): string {
   
     return cardNumber;
 }
-  
+
 function calculateLuhnChecksum(cardNumber: string): number {
     const digits = cardNumber.split('').map(Number);
 
@@ -134,4 +130,3 @@ function calculateLuhnChecksum(cardNumber: string): number {
 
     return checksum;
 }
-  
