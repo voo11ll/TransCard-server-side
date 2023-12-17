@@ -2,6 +2,12 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { User } from 'src/user/user.schema';
 
+export enum CardType {
+  Privileged = 'privileged',
+  Standard = 'standard',
+  Student = 'student',
+}
+
 @Schema({
   timestamps: true,
 })
@@ -17,6 +23,20 @@ export class Card extends Document {
 
   @Prop({ default: true })
   isActive: boolean;
+
+  @Prop({ required: true, 
+    enum: [CardType.Privileged, CardType.Standard, CardType.Student], 
+    default: CardType.Standard })
+  cardType: string;
+
+  // @Prop({
+  //   type: {
+  //     type: String,
+  //     enum: [CardType.Privileged, CardType.Standard, CardType.Student],
+  //     default: CardType.Standard,
+  //   },
+  // })
+  // cardType: CardType;
 
   @Prop({
     type: {

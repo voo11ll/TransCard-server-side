@@ -2,6 +2,7 @@ import { Body, Controller, Post, Get, UseGuards, Request } from '@nestjs/common'
 import { CardService } from './card.service';
 import { AuthGuard } from '@nestjs/passport';
 import { Types } from 'mongoose';
+import { Card, CardType } from './card.schema';
 
 interface CurrentTariff {
   tariffId: Types.ObjectId;
@@ -15,21 +16,26 @@ export class CardController {
 
   @UseGuards(AuthGuard())
   @Post('/add')
-  async addCard(@Request() req: any): Promise<void> {
+  async addCard(@Request() req: any, @Body('cardType') cardType: string): Promise<Card> {
     const userId = req.user.id;
-    await this.cardService.addCard(userId);
+    const card = await this.cardService.addCard(userId, cardType);
+    
+    console.log('Ответ от сервера:', card);
+    return card;
   }
 
   @UseGuards(AuthGuard())
   @Get()
-  async getCardDetails(@Request() req: any): Promise<{ cardNumber: number, expirationDate: Date, isActive: boolean, currentTariff: CurrentTariff  }> {
-    const userId = req.user.id; // Получение идентификатора пользователя из токена
+  async getCardDetails(@Request() req: any): Promise<{ cardNumber: number, expirationDate: Date, isActive: boolean, currentTariff: CurrentTariff, cardType: string }> {
+    const userId = req.user.id;
     const card = await this.cardService.getCardDetails(userId);
+
     return {
       cardNumber: card.cardNumber,
       expirationDate: card.expirationDate,
       isActive: card.isActive,
       currentTariff: card.currentTariff,
+      cardType: card.cardType,
     };
   }
 }
