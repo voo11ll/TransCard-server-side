@@ -42,10 +42,7 @@ export class CardService {
   }
 
   async getCardDetails(userId: string): Promise<Card> {
-    console.log('Received userId:', userId);
     const user = await this.userModel.findById(userId);
-
-    console.log('Found user:', user);
 
     if (!user) {
       throw new NotFoundException('User not found');

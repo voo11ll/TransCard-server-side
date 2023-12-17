@@ -7,6 +7,8 @@ async function bootstrap() {
 
   app.useGlobalPipes(new ValidationPipe());
 
-  await app.listen(3000);
+  await app.listen(3000, '0.0.0.0', () => {
+    console.log('Server is running on port 3000');
+  });
 }
 bootstrap();
