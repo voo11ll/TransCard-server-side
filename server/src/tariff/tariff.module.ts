@@ -8,6 +8,6 @@ import { Tariff, TariffSchema } from './tariff.schema';
   imports: [MongooseModule.forFeature([{ name: Tariff.name, schema: TariffSchema }])],
   controllers: [TariffController],
   providers: [TariffService],
-  exports: [TariffService, MongooseModule], // добавьте эту строку
+  exports: [TariffService, MongooseModule],
 })
 export class TariffModule {}

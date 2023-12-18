@@ -41,14 +41,14 @@ export class Card extends Document {
 
   @Prop({
     type: {
-      tariffId: { type: Types.ObjectId, ref: 'Tariff' }, // измените эту строку
+      purchasedTariff: { type: Types.ObjectId, ref: 'Tariff' },
       tripsRemaining: Number,
       expiryDate: Date,
     },
     default: null,
   })
   currentTariff: {
-    tariffId: Types.ObjectId;
+    purchasedTariff: Types.ObjectId;
     tripsRemaining: number;
     expiryDate: Date;
   };

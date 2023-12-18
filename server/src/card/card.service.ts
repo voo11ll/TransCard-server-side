@@ -43,10 +43,16 @@ export class CardService {
       throw new ConflictException('Payment failed. Insufficient funds.');
     }
 
+     // Обновляет информацию о текущем тарифе при его покупке
+     card.currentTariff.purchasedTariff = tariff._id;
+     card.currentTariff.tripsRemaining = tariff.trips;
+     card.currentTariff.expiryDate = calculateExpirationDateForTariff();
+
     // Установка текущего тарифа для карты
-    card.currentTariff = tariff._id;
+    // card.currentTariff = tariff._id;
     await card.save();
   }
+  
   private simulatePayment(): boolean {
     // Реализовать свою логику оплаты
     // Например, проверка баланса карты, списание средств и т.д.
@@ -80,9 +86,9 @@ export class CardService {
       expirationDate: calculateExpirationDate(),
       isActive: true,
       currentTariff: {
-        tariffId: tariff._id,
-        tripsRemaining: tariff.trips,
-        expiryDate: calculateExpirationDateForTariff(),
+        purchasedTariff: null, // начальное значение
+        tripsRemaining: 0, // начальное значение
+        expiryDate: null, // начальное значение
       },
       cardType: cardType,
     });
