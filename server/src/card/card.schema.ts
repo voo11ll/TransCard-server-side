@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { User } from 'src/user/user.schema';
+import { Tariff } from '../tariff/tariff.schema';
 
 export enum CardType {
   Privileged = 'privileged',
@@ -40,7 +41,7 @@ export class Card extends Document {
 
   @Prop({
     type: {
-      tariffId: Types.ObjectId,
+      tariffId: { type: Types.ObjectId, ref: 'Tariff' }, // измените эту строку
       tripsRemaining: Number,
       expiryDate: Date,
     },

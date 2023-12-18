@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { User } from '../user/user.schema';
 import { Card, CardType } from './card.schema';
+import { Tariff } from 'src/tariff/tariff.schema';
 
 @Injectable()
 export class CardService {
@@ -11,8 +12,50 @@ export class CardService {
     private cardModel: Model<Card>,
     @InjectModel(User.name)
     private userModel: Model<User>,
+    @InjectModel(Tariff.name)
+    private tariffModel: Model<Tariff>,
   ) {}
 
+  // Логика покупки тарифа
+  async purchaseTariff(userId: string, tariffType: string): Promise<void> {
+    const user = await this.userModel.findById(userId);
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const card = await this.cardModel.findOne({ owner: user._id, isActive: true });
+
+    if (!card) {
+      throw new NotFoundException('Card not found');
+    }
+
+    const tariff = await this.tariffModel.findOne({ type: tariffType });
+
+    if (!tariff) {
+      throw new NotFoundException('Tariff not found');
+    }
+
+    // Проверка, достаточно ли средств для покупки тарифа
+    const isPaymentSuccessful = this.simulatePayment(); // Замените этот вызов на свою логику оплаты
+
+    if (!isPaymentSuccessful) {
+      throw new ConflictException('Payment failed. Insufficient funds.');
+    }
+
+    // Установка текущего тарифа для карты
+    card.currentTariff = tariff._id;
+    await card.save();
+  }
+  private simulatePayment(): boolean {
+    // Реализовать свою логику оплаты
+    // Например, проверка баланса карты, списание средств и т.д.
+    // Верните true, если оплата успешна, и false в противном случае.
+    return true; // Временно всегда считаем оплату успешной
+  }
+
+
+   // Логика добавления карты
   async addCard(userId: string, cardType: string): Promise<Card> {
     const user = await this.userModel.findById(userId);
 
@@ -25,19 +68,29 @@ export class CardService {
     if (existingCard) {
       throw new ConflictException('Card already issued for the user');
     }
+    const tariff = await this.tariffModel.findOne({ type: cardType });
+
+    if (!tariff) {
+      throw new NotFoundException('Tariff not found');
+    }
 
     const card = await this.cardModel.create({
       cardNumber: generateCardNumber(),
       owner: user._id,
       expirationDate: calculateExpirationDate(),
       isActive: true,
-      currentTariff: null,
+      currentTariff: {
+        tariffId: tariff._id,
+        tripsRemaining: tariff.trips,
+        expiryDate: calculateExpirationDateForTariff(),
+      },
       cardType: cardType,
     });
 
     return card;
   }
   
+  // Логика получения деталей карты
   async getCardDetails(userId: string): Promise<Card> {
     const user = await this.userModel.findById(userId);
 
@@ -62,6 +115,8 @@ export class CardService {
     );
   }
 }
+
+
 
 function calculateExpirationDate(): Date {
     const currentDate = new Date();
@@ -93,6 +148,20 @@ function generateCardNumber(): string {
     cardNumber += checksum;
   
     return cardNumber;
+}
+
+
+function calculateExpirationDateForTariff(): Date {
+  const currentDate = new Date();
+  const expirationDate = new Date(currentDate);
+
+  // Устанавливаем месяц на 12 месяцев вперед
+  expirationDate.setMonth(currentDate.getMonth() + 12);
+
+  // Устанавливаем день на 1-е число месяца
+  expirationDate.setDate(1);
+
+  return expirationDate;
 }
 
 function calculateLuhnChecksum(cardNumber: string): number {

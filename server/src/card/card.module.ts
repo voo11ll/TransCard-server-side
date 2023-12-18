@@ -5,6 +5,7 @@ import { CardController } from './card.controller';
 import { Card, CardSchema } from './card.schema';
 import { User, UserSchema } from '../user/user.schema';
 import { AuthModule } from '../auth/auth.module';
+import { TariffModule } from 'src/tariff/tariff.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { AuthModule } from '../auth/auth.module';
       { name: User.name, schema: UserSchema },
     ]),
     AuthModule,
+    TariffModule,
   ],
   controllers: [CardController],
   providers: [CardService],

@@ -38,4 +38,13 @@ export class CardController {
       cardType: card.cardType,
     };
   }
+
+  @UseGuards(AuthGuard())
+  @Post('/purchase-tariff')
+  async purchaseTariff(@Request() req: any, @Body('tariffType') tariffType: string): Promise<{ message: string }> {
+    const userId = req.user.id;
+    await this.cardService.purchaseTariff(userId, tariffType);
+    return { message: 'Tariff purchased successfully' };
+  }
+
 }
