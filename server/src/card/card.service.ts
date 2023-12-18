@@ -74,11 +74,12 @@ export class CardService {
     if (existingCard) {
       throw new ConflictException('Card already issued for the user');
     }
-    const tariff = await this.tariffModel.findOne({ type: cardType });
+    // проверка карты на стандарт  
+    // const tariff = await this.tariffModel.findOne({ type: cardType });
 
-    if (!tariff) {
-      throw new NotFoundException('Tariff not found');
-    }
+    // if (!tariff) {
+    //   throw new NotFoundException('Tariff not found');
+    // }
 
     const card = await this.cardModel.create({
       cardNumber: generateCardNumber(),
