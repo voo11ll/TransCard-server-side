@@ -41,7 +41,7 @@ export class AuthService {
       // Можно отправить новое письмо с кодом подтверждения
       await this.sendVerificationEmail(existingUser.email, verificationCode);
   
-      return { message: 'Registration completed successful', statusCode: 201 };
+      return { message: 'Email already registered. New verification code sent.', statusCode: 201 };
     }
   
     // Пользователь не существует или уже верифицирован, создаем нового пользователя
@@ -62,7 +62,7 @@ export class AuthService {
   
       const token = this.jwtService.sign({ id: user._id });
     
-      return { message: 'Registration completed successful', statusCode: 201, token };
+      return { message: 'Registration completed successful', statusCode: 201};
     } catch (error) {
       console.error('Error during sign-up:', error);
       return { message: 'Error: Registration failed', statusCode: 500 };
@@ -88,6 +88,28 @@ export class AuthService {
       console.error('Error during sign-up:', error);
       return { message: 'Error: Email not validated', statusCode: 500 }; // 500 - Internal Server Error
   }
+
+  async resendVerificationCode(email: string): Promise<{ message: string, statusCode: number }> {
+    const user = await this.userModel.findOne({ email });
+  
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+  
+    if (user.isVerified) {
+      return { message: 'User is already verified.', statusCode: 400 };
+    }
+  
+    // Генерируем новый код и сохраняем его в базу данных
+    const newVerificationCode = generateVerificationCode();
+    user.verificationCode = newVerificationCode;
+    await user.save();
+  
+    // Отправляем новый код подтверждения
+    await this.sendVerificationEmail(user.email, newVerificationCode);
+  
+    return { message: 'New verification code sent.', statusCode: 200 };
+  }  
 
   private async sendVerificationEmail(email: string, verificationCode: string): Promise<void> {
     // Создаем транспорт для отправки электронных писем (замените значения на свои)

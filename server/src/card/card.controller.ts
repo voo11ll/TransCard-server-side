@@ -31,7 +31,7 @@ export class CardController {
     const card = await this.cardService.getCardDetails(userId);
 
     return {
-      cardNumber: card.cardNumber,
+      cardNumber: parseInt(card.cardNumber.toString().substring(0, 16), 10),
       expirationDate: card.expirationDate,
       isActive: card.isActive,
       currentTariff: card.currentTariff,
