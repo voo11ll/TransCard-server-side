@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { User } from 'src/user/user.schema';
+import { Tariff } from '../tariff/tariff.schema';
 
 export enum CardType {
   Privileged = 'privileged',
@@ -40,14 +41,14 @@ export class Card extends Document {
 
   @Prop({
     type: {
-      tariffId: Types.ObjectId,
+      purchasedTariff: { type: Types.ObjectId, ref: 'Tariff' },
       tripsRemaining: Number,
       expiryDate: Date,
     },
     default: null,
   })
   currentTariff: {
-    tariffId: Types.ObjectId;
+    purchasedTariff: Types.ObjectId;
     tripsRemaining: number;
     expiryDate: Date;
   };

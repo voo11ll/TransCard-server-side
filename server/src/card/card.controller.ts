@@ -5,7 +5,7 @@ import { Types } from 'mongoose';
 import { Card, CardType } from './card.schema';
 
 interface CurrentTariff {
-  tariffId: Types.ObjectId;
+  purchasedTariff: Types.ObjectId;
   tripsRemaining: number;
   expiryDate: Date;
 }
@@ -30,12 +30,27 @@ export class CardController {
     const userId = req.user.id;
     const card = await this.cardService.getCardDetails(userId);
 
+    const currentTariff: CurrentTariff = {
+      purchasedTariff: card.currentTariff.purchasedTariff,
+      tripsRemaining: card.currentTariff.tripsRemaining,
+      expiryDate: card.currentTariff.expiryDate,
+    };
+
     return {
       cardNumber: parseInt(card.cardNumber.toString().substring(0, 16), 10),
       expirationDate: card.expirationDate,
       isActive: card.isActive,
-      currentTariff: card.currentTariff,
+      currentTariff: currentTariff,
       cardType: card.cardType,
     };
   }
+
+  @UseGuards(AuthGuard())
+  @Post('/purchase-tariff')
+  async purchaseTariff(@Request() req: any, @Body('tariffType') tariffType: string): Promise<{ message: string }> {
+    const userId = req.user.id;
+    await this.cardService.purchaseTariff(userId, tariffType);
+    return { message: 'Tariff purchased successfully' };
+  }
+
 }
