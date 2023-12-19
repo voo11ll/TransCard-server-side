@@ -60,6 +60,36 @@ export class CardService {
     return true; // Временно всегда считаем оплату успешной
   }
 
+    // Логика вычета поездки
+    async deductTrip(userId: string): Promise<void> {
+      const user = await this.userModel.findById(userId);
+  
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+  
+      const card = await this.cardModel.findOne({ owner: user._id, isActive: true });
+  
+      if (!card) {
+        throw new NotFoundException('Card not found');
+      }
+  
+      // Проверяем, есть ли текущий тариф
+      if (!card.currentTariff || !card.currentTariff.purchasedTariff) {
+        throw new ConflictException('No active tariff found');
+      }
+  
+      // Проверяем, есть ли оставшиеся поездки
+      if (card.currentTariff.tripsRemaining <= 0) {
+        throw new ConflictException('No trips remaining in the current tariff');
+      }
+  
+      // Уменьшаем количество оставшихся поездок на 1
+      card.currentTariff.tripsRemaining--;
+  
+      // Сохраняем обновленные данные карты
+      await card.save();
+    }
 
    // Логика добавления карты
   async addCard(userId: string, cardType: string): Promise<Card> {
@@ -160,15 +190,11 @@ function generateCardNumber(): string {
 
 function calculateExpirationDateForTariff(): Date {
   const currentDate = new Date();
-  const expirationDate = new Date(currentDate);
+  const expiryDate = new Date(currentDate);
 
-  // Устанавливаем месяц на 12 месяцев вперед
-  expirationDate.setMonth(currentDate.getMonth() + 12);
+  expiryDate.setMonth(currentDate.getMonth() + 1);
 
-  // Устанавливаем день на 1-е число месяца
-  expirationDate.setDate(1);
-
-  return expirationDate;
+  return expiryDate;
 }
 
 function calculateLuhnChecksum(cardNumber: string): number {

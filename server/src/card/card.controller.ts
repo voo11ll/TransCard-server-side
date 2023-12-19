@@ -53,4 +53,11 @@ export class CardController {
     return { message: 'Tariff purchased successfully' };
   }
 
+  @UseGuards(AuthGuard())
+  @Post('/deduct-trip')
+  async deductTrip(@Request() req: any): Promise<{ message: string }> {
+    const userId = req.user.id;
+    await this.cardService.deductTrip(userId);
+    return { message: 'Trip deducted successfully' };
+  }
 }
